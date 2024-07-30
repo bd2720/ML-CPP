@@ -1,2 +1,2 @@
 # ML-CPP
-A simple machine learning library for C++
+A simple machine learning demonstration for C++  
