@@ -10,11 +10,19 @@ MDP::MDP(int numStates, int numActions){
 }
 
 int MDP::idx(int s, int a, int s2){
-      return (s2 + n_actions * (a + n_states * (s)));
+      return (s2 + n_states * (a + n_actions * (s)));
 }
 
 void MDP::addTransition(int s, int a, int s2, float prob, float reward){
   int transitionIndex = idx(s, a, s2);
   f_transition[transitionIndex].first = prob;
   f_transition[transitionIndex].second = reward;
+}
+
+float MDP::getProbability(int s, int a, int s2){
+  return f_transition[idx(s, a, s2)].first;
+}
+
+float MDP::getReward(int s, int a, int s2){
+  return f_transition[idx(s, a, s2)].second;
 }
