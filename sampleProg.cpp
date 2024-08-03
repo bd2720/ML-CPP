@@ -20,7 +20,7 @@ void sampleProblem1(){
   problem.addTransition(1, 1, 2, 1.0, -10);
   cout << "Transition function configured." << endl;
 
-  MDPValueIterator vi(&problem); // discount rate 1.0
+  MDPValueIterator vi(&problem); // discount rate 1.0 (default)
   cout << "MDP Value Iterator created; Discount = " << vi.getDiscount() << endl;
   
   int iterations = 5;
@@ -81,6 +81,12 @@ void sampleProblem2(){
     }
     cout << endl;
   }
+  // display policy after last iteration
+  cout << "pi" << vi.getCurrentK() << "(s):";
+  for(int a = 0; a < problem.getNumActions(); a++){
+    cout << " " << vi.getPolicyAction(s);
+  }
+  cout << endl;
 }
 
 int main(){

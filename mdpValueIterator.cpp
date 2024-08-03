@@ -13,6 +13,7 @@ MDPValueIterator::MDPValueIterator(MDP * mdpRef, float discountRate){
   f_stateValue.resize(mdpStates);
   f_prevStateValue.resize(mdpStates);
   f_qStateValue.resize(mdpStates * mdpActions);
+  f_policy.resize(mdpActions);
 }
 
 float MDPValueIterator::getDiscount(){
@@ -31,12 +32,18 @@ float MDPValueIterator::getStateValue(int s){
   return this->f_stateValue[s];
 }
 
-void MDPValueIterator::setQStateValue(int s, int a, float val){
-  this->f_qStateValue[q_idx(s, a)] = val;
+int MDPValueIterator::getPolicyAction(int s){
+  return this->f_policy[s];
 }
 
-void MDPValueIterator::setStateValue(int s, float val){
-  this->f_stateValue[s] = val;
+void MDPValueIterator::vIterate(){
+  k++;
+  // copy Vk values to previous Vk
+  f_prevStateValue.assign(f_stateValue.begin(), f_stateValue.end());
+  // calculate V*(s) for each state in mdp
+  for(int s = 0; s < mdpStates; s++){
+    setStateValue(s, calcStateValue(s));
+  }
 }
 
 /* PRIVATE */
@@ -60,24 +67,30 @@ float MDPValueIterator::calcQStateValue(int s, int a){
 float MDPValueIterator::calcStateValue(int s){
   // create vector to hold all action sums
   if(mdpActions == 0) return 0.0;
-  float maxQStateVal = calcQStateValue(s, 0); // (actions > 0)
+  int maxAction = 0; // assume (actions > 0)
+  float maxQStateVal = calcQStateValue(s, maxAction);
   setQStateValue(s, 0, maxQStateVal); // update Q*k(s, a)
   for(int a = 1; a < mdpActions; a++){
     float currQStateVal = calcQStateValue(s, a);
     setQStateValue(s, a, currQStateVal); // update Q*k(s, a)
     if(currQStateVal > maxQStateVal){
+      maxAction = a;
       maxQStateVal = currQStateVal;
     }
   }
+  // update policy
+  setPolicyAction(s, maxAction);
   return maxQStateVal;
 }
 
-void MDPValueIterator::vIterate(){
-  k++;
-  // copy Vk values to previous Vk
-  f_prevStateValue.assign(f_stateValue.begin(), f_stateValue.end());
-  // calculate V*(s) for each state in mdp
-  for(int s = 0; s < mdpStates; s++){
-    setStateValue(s, calcStateValue(s));
-  }
+void MDPValueIterator::setQStateValue(int s, int a, float val){
+  this->f_qStateValue[q_idx(s, a)] = val;
+}
+
+void MDPValueIterator::setStateValue(int s, float val){
+  this->f_stateValue[s] = val;
+}
+
+void MDPValueIterator::setPolicyAction(int s, int bestAction){
+  this->f_policy[s] = bestAction;
 }
