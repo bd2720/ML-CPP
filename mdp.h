@@ -12,6 +12,7 @@ class MDP {
   private:
     int n_states;  // 0-indexed
     int n_actions; // 0-indexed
+    int defaultR;  // default cost of taking any action
     vector<TransitionVal>  f_transition; // 3d vector indexed by idx(s, a, s')
     
     // index into 3d transition function
@@ -20,7 +21,7 @@ class MDP {
   public:
 
     // create a Markov Decision Problem with fixed states/actions
-    MDP(int numStates, int numActions);
+    MDP(int numStates, int numActions, float defCost=0.0);
     // get n_states
     int getNumStates();
     // get n_actions;
@@ -31,6 +32,8 @@ class MDP {
     float getReward(int s, int a, int s2);
     // register a new transition(s, a, s2) with probability p and reward r
     void addTransition(int s, int a, int s2, float p, float r);
+    // register a new transition without changing reward
+    void addTransition(int s, int a, int s2, float p);
 };
 
 #endif

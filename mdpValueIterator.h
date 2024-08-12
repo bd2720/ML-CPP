@@ -10,11 +10,11 @@ class MDPValueIterator {
 
     float discount; // discount rate, in (0.0, 1.0)
     int k; // current iteration (k=0 --> v*(s) = 0.0)
-    vector<float> f_prevStateValue; // V*k-1(s)
+    vector<float> f_newStateValue;       // V*k+1(s) temp space
 
-    vector<float> f_stateValue;   // V*k(s)     --> utility
-    vector<float> f_qStateValue;  // Q*k(s, a)  --> utility
-    vector<float> f_policy;       // pi_k(s)    --> action
+    vector<float> f_stateValue;       // V*k(s)     --> utility
+    vector<float> f_qStateValue;      // Q*k(s, a)  --> utility
+    vector<float> f_extractedPolicy;  // pi_k(s)    --> action
 
     // index into f_qStateValue given (s, a)
     int q_idx(int s, int a);
@@ -26,10 +26,8 @@ class MDPValueIterator {
     
     // set value of qState in f_qStateValue using q_idx
     void setQStateValue(int s, int a, float val);
-    // set value of state in f_stateValue
-    void setStateValue(int s, float val);
     // set policy value in state s to bestAction
-    void setPolicyAction(int s, int bestAction);
+    void setExtractedPolicy(int s, int bestAction);
 
   public:
     // create a Value Iterator to solve the given MDP
@@ -44,10 +42,11 @@ class MDPValueIterator {
     // return state value (after already calculated)
     float getStateValue(int s);
     // return best action in state s (after already calculated)
-    int getPolicyAction(int s);
-
+    int getExtractedPolicy(int s);
     // calculate the next iteration of V*k(s), Q*k(s, a)
     void vIterate(void);
+    // calculate pi_k(s) for each state
+    void extractPolicy(void);
 };
 
 #endif

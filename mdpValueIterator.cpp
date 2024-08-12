@@ -11,9 +11,9 @@ MDPValueIterator::MDPValueIterator(MDP * mdpRef, float discountRate){
   this->discount = discountRate;
   k = 0; // 0th iteration
   f_stateValue.resize(mdpStates);
-  f_prevStateValue.resize(mdpStates);
+  f_newStateValue.resize(mdpStates);
   f_qStateValue.resize(mdpStates * mdpActions);
-  f_policy.resize(mdpActions);
+  f_extractedPolicy.resize(mdpActions);
 }
 
 float MDPValueIterator::getDiscount(){
@@ -32,17 +32,35 @@ float MDPValueIterator::getStateValue(int s){
   return this->f_stateValue[s];
 }
 
-int MDPValueIterator::getPolicyAction(int s){
-  return this->f_policy[s];
+int MDPValueIterator::getExtractedPolicy(int s){
+  return this->f_extractedPolicy[s];
 }
 
 void MDPValueIterator::vIterate(){
-  k++;
-  // copy Vk values to previous Vk
-  f_prevStateValue.assign(f_stateValue.begin(), f_stateValue.end());
+  // create vector to hold new Vk(s)
   // calculate V*(s) for each state in mdp
   for(int s = 0; s < mdpStates; s++){
-    setStateValue(s, calcStateValue(s));
+    f_newStateValue[s] = calcStateValue(s);
+  }
+  // copy new Vk values to Vk
+  f_stateValue.assign(f_newStateValue.begin(), f_newStateValue.end());
+  k++;
+}
+
+void MDPValueIterator::extractPolicy(){
+  if(mdpActions == 0) return;
+  // find best action for each state
+  for(int s = 0; s < mdpStates; s++){
+    int maxAction = 0; // assume (actions > 0)
+    float maxQStateVal = getQStateValue(s, 0);
+    for(int a = 1; a < mdpActions; a++){
+      float currQStateVal = getQStateValue(s, a);
+      if(currQStateVal > maxQStateVal){
+        maxAction = a;
+        maxQStateVal = currQStateVal;
+      }
+    }
+    setExtractedPolicy(s, maxAction); // update pi(s)
   }
 }
 
@@ -59,13 +77,12 @@ float MDPValueIterator::calcQStateValue(int s, int a){
     // Bellman Equation for (s, a, s2)
     float probability = mdp->getProbability(s, a, s2); // T(s, a, s')
     float reward = mdp->getReward(s, a, s2); // R(s, a, s')
-    sum += probability * (reward + discount*f_prevStateValue[s2]);
+    sum += probability * (reward + discount*f_stateValue[s2]);
   }
   return sum;
 }
 
 float MDPValueIterator::calcStateValue(int s){
-  // create vector to hold all action sums
   if(mdpActions == 0) return 0.0;
   int maxAction = 0; // assume (actions > 0)
   float maxQStateVal = calcQStateValue(s, maxAction);
@@ -78,8 +95,6 @@ float MDPValueIterator::calcStateValue(int s){
       maxQStateVal = currQStateVal;
     }
   }
-  // update policy
-  setPolicyAction(s, maxAction);
   return maxQStateVal;
 }
 
@@ -87,10 +102,6 @@ void MDPValueIterator::setQStateValue(int s, int a, float val){
   this->f_qStateValue[q_idx(s, a)] = val;
 }
 
-void MDPValueIterator::setStateValue(int s, float val){
-  this->f_stateValue[s] = val;
-}
-
-void MDPValueIterator::setPolicyAction(int s, int bestAction){
-  this->f_policy[s] = bestAction;
+void MDPValueIterator::setExtractedPolicy(int s, int bestAction){
+  this->f_extractedPolicy[s] = bestAction;
 }
