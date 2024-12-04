@@ -1,7 +1,7 @@
 #include <vector>
 #include <ctime>
 #include <cstdlib>
-
+#include <cmath>
 #include "fnn.hpp"
 
 using namespace std;
@@ -9,6 +9,10 @@ using namespace std;
 // random float within range
 static float getRandomFloat(float low, float high){
   return ((float) rand() / (float) RAND_MAX) * (high - low) + low;
+}
+// sigmoid activation function
+static float sigmoid(float x){
+  return 1.0 / (1.0 + exp(-x));
 }
 
 FNN::FNN(vector<int> &layers){
@@ -55,17 +59,43 @@ void FNN::initWeights(){
   // randomly initialize weights for non-input layers
   for(int l = 1; l < numLayers; l++){
     for(int n = 0; n < numNeurons[l]*numNeurons[l-1]; n++){
-      weight[l][n] = getRandomFloat(-0.1, 0.1);
+      weight[l][n] = getRandomFloat(-0.28, 0.28);
     }
   }
 }
 
 void FNN::initBiases(){
-  srand(time(0));
   // zero-initialize weights on each non-input layer
   for(int l = 1; l < numLayers; l++){
     for(int n = 0; n < numNeurons[l]; n++){
       bias[l][n] = 0;
     }
   }
+}
+
+void FNN::setInputs(float *inputs){
+  // assumes inputs is not null and contains numNeurons[0] vals
+  for(int n = 0; n < numNeurons[0]; n++){
+    activation[0][n] = inputs[n];
+  }
+}
+
+void FNN::computeActivations(){
+  // compute activation for all layers after input
+  for(int l = 1; l < numLayers; l++){
+    // calculate weighted sum for each neuron
+    for(int j = 0; j < numNeurons[l]; j++){
+      // add weight*activation for each neuron on previous layer
+      float sum = getBias(l, j);
+      for(int k = 0; k < numNeurons[l-1]; k++){
+        sum += getWeight(l, j, k) * getActivation(l-1, k);
+      }
+      // set activation of jth neuron of lth layer
+      activation[l][j] = sigmoid(sum);
+    }
+  }
+}
+
+float * FNN::getOutputs(){
+  return activation[numLayers-1];
 }

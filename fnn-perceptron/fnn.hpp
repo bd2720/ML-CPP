@@ -27,10 +27,20 @@ class FNN {
     float getBias(int layer, int neuron){ return bias[layer][neuron]; }
     float getActivation(int layer, int neuron){ return activation[layer][neuron]; }
 
+    int getNumInputs(){ return numNeurons[0]; }
+    int getNumOutputs(){ return numNeurons[numLayers-1]; }
+
     // initialize weight 2D arrays for each layer
     void initWeights();
     // initialize bias arrays for each layer
     void initBiases();
+
+    // copy float array to input layer (activation[0])
+    void setInputs(float *inputs);
+    // set activations + outputs assuming inputs are set
+    void computeActivations();
+    // expose output layer (activation[numLayers-1]) if activations were computed
+    float *getOutputs();
 };
 
 #undef W_IDX
