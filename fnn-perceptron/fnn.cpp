@@ -14,10 +14,15 @@ static float getRandomFloat(float low, float high){
 static float sigmoid(float x){
   return 1.0 / (1.0 + exp(-x));
 }
+// derivative of sigmoid in terms of y (sigmoid)
+static float dSigmoid(float y){
+  return y * (1.0 - y);
+}
 
-FNN::FNN(vector<int> &layers){
+FNN::FNN(vector<int> &layers, float rate){
   // initialize number of layers
   this->numLayers = layers.size();
+  this->learningRate = rate;
 
   // configure input layer
   int n = layers[0];
@@ -27,6 +32,8 @@ FNN::FNN(vector<int> &layers){
   this->bias.push_back(nullptr);
   // activation[0] has input neurons
   this->activation.push_back(new float[n]);
+  // can't propagate back to input neurons (fixed)
+  this->dActivation.push_back(nullptr);
 
   // iterate through layers
   for(int l = 1; l < numLayers; l++){
@@ -38,6 +45,7 @@ FNN::FNN(vector<int> &layers){
     // biases and activations for this layer's neurons
     this->bias.push_back(new float[n]);
     this->activation.push_back(new float[n]);
+    this->dActivation.push_back(new float[n]);
   }
 }
 
@@ -50,6 +58,7 @@ FNN::~FNN(){
     delete[] this->weight[l];
     delete[] this->bias[l];
     delete[] this->activation[l];
+    delete[] this->dActivation[l];
   }
 }
 
@@ -92,6 +101,36 @@ void FNN::computeActivations(){
       }
       // set activation of jth neuron of lth layer
       activation[l][j] = sigmoid(sum);
+    }
+  }
+}
+
+void FNN::backpropagate(float *expected){
+  // store dC0/dA calculated from cost in dActivation[outLayer]
+  int outLayer = numLayers-1;
+  for(int outNeuron = 0; outNeuron < getNumOutputs(); outNeuron++){
+    dActivation[outLayer][outNeuron] = 2.0*(activation[outLayer][outNeuron] - expected[outNeuron]);
+  }
+  // propagate changes backwards, stop before input layer
+  for(int l = numLayers-1; l > 0; l--){
+    // 0-init all dActivation sums on previous layer
+    if(l > 1){ // skip dActivation if
+      for(int k = 0; k < numNeurons[l-1]; k++){
+        dActivation[l-1][k] = 0;
+      }
+    }
+    for(int j = 0; j < numNeurons[l]; j++){
+      // save dC0/dZ
+      float dCdZ = (dSigmoid(activation[l][j]) * dActivation[l][j]);
+      // adjust bias
+      bias[l][j] -= dCdZ * learningRate;
+      // adjust of weights, accumulate previous activation adjustments
+      for(int k = 0; k < numNeurons[l-1]; k++){
+        // append to sum
+        if(l > 1) dActivation[l-1][k] += getWeight(l, j, k) * dCdZ;
+        // set weight AFTER using in dAcivation sums
+        decWeight(l, j, k, activation[l-1][k] * dCdZ * learningRate);
+      }
     }
   }
 }
