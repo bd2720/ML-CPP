@@ -29,7 +29,7 @@ class FNN {
   public:
     // initialize neural network (weights, biases, activation)
     // accepts a vector representing the number of neurons per layer
-    FNN(std::vector<int> &layers, double rate = 0.1);
+    FNN(const std::vector<int> &layers, double rate = 0.1);
     // free dynamic arrays
     ~FNN();
 
@@ -48,10 +48,8 @@ class FNN {
     // initialize bias arrays for each layer
     void initBiases(double minBias, double maxBias);
 
-    // copy double array to input layer (activation[0])
-    void setInputs(double *inputs);
     // set activations + outputs assuming inputs are set
-    void computeActivations();
+    void feedforward(double *inputs);
     // backpropagate after a training example (+ adjust weights/biases)
     void backpropagate(double *expected);
     // expose output layer (activation[numLayers-1]) if activations were computed
