@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <chrono>
 #include "fnn.hpp"
 using namespace std;
 
@@ -26,16 +27,17 @@ int main(){
   for(int l = 0; l < fnn.getNumLayers(); l++){
     cout << "  Layer " << l << ": " << fnn.getNumNeurons(l) << " neurons" << endl;
   }
-
+  cout << endl;
+  
   // initialize weights/biases randomly
   fnn.initWeights(0.5, 1.0);
   fnn.initBiases(0.0, 0.0);
 
   srand(time(0));
   // train on N_EXAMPLES examples, computing SGD step for each one
-  int correct = 0;
+  auto trainingStart = chrono::high_resolution_clock::now();
   for(int epoch = 1; epoch <= N_EPOCHS; epoch++){
-    correct = 0;
+    int correct = 0;
     for(int example = 1; example <= N_EXAMPLES; example++){
       // generate training example
       int a = getRandomBinary();
@@ -57,8 +59,10 @@ int main(){
     }
     // print/reset accuracy after each epoch
     cout << "e" << epoch << ": ";
-    cout << ((double)correct) / ((double)N_EXAMPLES) * 100 << "%" << endl;
+    cout << ((double)correct) / ((double)N_EXAMPLES) * 100.0 << "%" << endl;
   }
+  auto trainingEnd = chrono::high_resolution_clock::now();
+  auto trainingDuration = chrono::duration_cast<chrono::microseconds>(trainingEnd - trainingStart);
 
   // print final weights
   cout << endl << "Final Weights:" << endl;
@@ -78,7 +82,8 @@ int main(){
       cout << "  b" <<  j << " = " << fnn.getBias(l, j) << endl;
     }
   }
-
+  // display training time
+  cout << "Trained model for " << trainingDuration.count() / 1000000.0 << " seconds." << endl;
   return 0;
 }
 

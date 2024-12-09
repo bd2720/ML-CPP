@@ -96,7 +96,7 @@ void FNN::feedforward(double *inputs){
 void FNN::backpropagate(double *expected){
   // store dC0/dA calculated from cost in dActivation[outLayer]
   int outLayer = numLayers-1;
-  for(int outNeuron = 0; outNeuron < getNumOutputs(); outNeuron++){
+  for(int outNeuron = 0; outNeuron < numNeurons[outLayer]; outNeuron++){
     dActivation[outLayer][outNeuron] = 2.0*(activation[outLayer][outNeuron] - expected[outNeuron]);
   }
   // propagate changes backwards, stop before input layer
