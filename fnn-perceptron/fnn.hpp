@@ -1,6 +1,7 @@
 #ifndef FNN_H
 #define FNN_H
 #include <vector>
+#include <string>
 
 /*  Feedforward Neural Network, or "Multilayer Perceptron"
     Inspired by:
@@ -54,6 +55,9 @@ class FNN {
     void backpropagate(double *expected);
     // expose output layer (activation[numLayers-1]) if activations were computed
     double *getOutputs();
+
+    // export raw model parameters (layers, weights, biases)
+    void exportParameters(const std::string &paramsFilename);
 };
 
 #undef W_IDX

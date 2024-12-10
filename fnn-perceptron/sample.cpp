@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <chrono>
+#include <string>
 #include "fnn.hpp"
 using namespace std;
 
@@ -11,6 +12,7 @@ using namespace std;
 #define N_OUTPUTS 1
 #define N_EXAMPLES 100
 #define N_EPOCHS 400
+const string paramsFilename = "fnn_params.model";
 
 double inputs[N_INPUTS];
 double expected[N_OUTPUTS];
@@ -28,7 +30,7 @@ int main(){
     cout << "  Layer " << l << ": " << fnn.getNumNeurons(l) << " neurons" << endl;
   }
   cout << endl;
-  
+
   // initialize weights/biases randomly
   fnn.initWeights(0.5, 1.0);
   fnn.initBiases(0.0, 0.0);
@@ -82,6 +84,11 @@ int main(){
       cout << "  b" <<  j << " = " << fnn.getBias(l, j) << endl;
     }
   }
+
+  // export model params
+  fnn.exportParameters(paramsFilename);
+  cout << "Exported model parameters to \"" << paramsFilename << "\"" << endl;
+
   // display training time
   cout << "Trained model for " << trainingDuration.count() / 1000000.0 << " seconds." << endl;
   return 0;

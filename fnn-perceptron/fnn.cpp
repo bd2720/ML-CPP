@@ -2,6 +2,10 @@
 #include <ctime>
 #include <cstdlib>
 #include <cmath>
+#include <algorithm>
+#include <string>
+#include <fstream>
+#include <iterator>
 #include "fnn.hpp"
 
 using namespace std;
@@ -56,9 +60,15 @@ FNN::~FNN(){
 }
 
 void FNN::initWeights(double minWeight, double maxWeight){
+  // use iterator if single value
+  bool singleValue = (minWeight == maxWeight);
   srand(time(0));
   // randomly initialize weights for non-input layers
   for(int l = 1; l < numLayers; l++){
+    if(singleValue){
+      fill(weight[l], weight[l] + numNeurons[l]*numNeurons[l-1], maxWeight);
+      continue;
+    }
     for(int n = 0; n < numNeurons[l]*numNeurons[l-1]; n++){
       weight[l][n] = randomDouble(minWeight, maxWeight);
     }
@@ -66,9 +76,15 @@ void FNN::initWeights(double minWeight, double maxWeight){
 }
 
 void FNN::initBiases(double minBias, double maxBias){
+  // use iterator if single value
+  bool singleValue = (minBias == maxBias);
   srand(time(0));
   // initialize weights on each non-input layer
   for(int l = 1; l < numLayers; l++){
+    if(singleValue){
+      fill(bias[l], bias[l] + numNeurons[l], maxBias);
+      continue;
+    }
     for(int n = 0; n < numNeurons[l]; n++){
       bias[l][n] = randomDouble(minBias, maxBias);
     }
@@ -104,9 +120,7 @@ void FNN::backpropagate(double *expected){
     bool shouldComputeDelta = (l > 1);
     // 0-init all dActivation sums on previous layer
     if(shouldComputeDelta){ // skip dActivation for input layer
-      for(int k = 0; k < numNeurons[l-1]; k++){
-        dActivation[l-1][k] = 0;
-      }
+      fill(dActivation[l-1], dActivation[l-1] + numNeurons[l-1], 0);
     }
     for(int j = 0; j < numNeurons[l]; j++){
       // save dC0/dZ
@@ -126,4 +140,32 @@ void FNN::backpropagate(double *expected){
 
 double * FNN::getOutputs(){
   return activation[numLayers-1];
+}
+
+void FNN::exportParameters(const string &paramsFilename){
+  // open file as ofstream
+  ofstream paramsFile(paramsFilename);
+  // treat weights/biases as raw bytes
+  unsigned char *bytes;
+
+  // write layers in csv format
+  ostream_iterator<int> layerIterator(paramsFile, ",");
+  copy(begin(numNeurons), end(numNeurons), layerIterator);
+  paramsFile << "\n"; // newline to signal end of layers
+
+  // write weights for each layer
+  for(int l = 1; l < numLayers; l++){
+    bytes = (unsigned char *) weight[l];
+    ostream_iterator<unsigned char> weightIterator(paramsFile);
+    copy(bytes, bytes + numNeurons[l]*numNeurons[l-1]*sizeof(double), weightIterator);
+  }
+
+  // write biases for each layer
+  for(int l = 1; l < numLayers; l++){
+    bytes = (unsigned char *) bias[l];
+    ostream_iterator<unsigned char> biasIterator(paramsFile);
+    copy(bytes, bytes + numNeurons[l]*sizeof(double), biasIterator);
+  }
+  // close parameter file
+  paramsFile.close();
 }
