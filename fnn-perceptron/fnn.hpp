@@ -35,14 +35,14 @@ class FNN {
     ~FNN();
 
     // getters
-    int getNumLayers() { return numLayers; }
-    int getNumNeurons(int layer) { return numNeurons[layer]; }
-    double getWeight(int layer, int neuron1, int neuron0){ return weight[layer][W_IDX(neuron1, neuron0, numNeurons[layer-1])]; }
-    double getBias(int layer, int neuron){ return bias[layer][neuron]; }
-    double getActivation(int layer, int neuron){ return activation[layer][neuron]; }
+    int getNumLayers() const { return numLayers; }
+    int getNumNeurons(int layer) const { return numNeurons[layer]; }
+    double getWeight(int layer, int neuron1, int neuron0) const { return weight[layer][W_IDX(neuron1, neuron0, numNeurons[layer-1])]; }
+    double getBias(int layer, int neuron) const { return bias[layer][neuron]; }
+    double getActivation(int layer, int neuron) const { return activation[layer][neuron]; }
 
-    int getNumInputs(){ return numNeurons[0]; }
-    int getNumOutputs(){ return numNeurons[numLayers-1]; }
+    int getNumInputs() const { return numNeurons[0]; }
+    int getNumOutputs() const { return numNeurons[numLayers-1]; }
 
     // initialize weight 2D arrays for each layer with [-maxWeight, maxWeight]
     void initWeights(double minWeight, double maxWeight);
@@ -56,8 +56,10 @@ class FNN {
     // expose output layer (activation[numLayers-1]) if activations were computed
     double *getOutputs();
 
-    // export raw model parameters (layers, weights, biases)
-    void exportParameters(const std::string &paramsFilename);
+    // export raw model parameters (layers, weights, biases), true if successful
+    bool exportParameters(const std::string &paramsFilename);
+    // load weights and biases from a file, true if successful
+    bool importParameters(const std::string &paramsFilename);
 };
 
 #undef W_IDX

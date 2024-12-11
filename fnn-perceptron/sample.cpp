@@ -17,13 +17,15 @@ const string paramsFilename = "fnn_params.model";
 double inputs[N_INPUTS];
 double expected[N_OUTPUTS];
 
+void printParams(const FNN &);
 double getRandomDouble(double, double);
 int getRandomBinary();
 
-int main(){
+void fnn_train_example(){
+  cout << "EXAMPLE 1 - CREATE, TRAIN + STORE MODEL" << endl;
+
   // create FNN, specifying layers + (optional) learning rate
-  const vector<int> layers = {N_INPUTS, 3, N_OUTPUTS};
-  FNN fnn(layers, 0.1);
+  FNN fnn({N_INPUTS, 3, N_OUTPUTS}, 0.1);
 
   cout << "Layers: " << fnn.getNumLayers() << endl;
   for(int l = 0; l < fnn.getNumLayers(); l++){
@@ -63,11 +65,42 @@ int main(){
     cout << "e" << epoch << ": ";
     cout << ((double)correct) / ((double)N_EXAMPLES) * 100.0 << "%" << endl;
   }
+  // display training time
   auto trainingEnd = chrono::high_resolution_clock::now();
   auto trainingDuration = chrono::duration_cast<chrono::microseconds>(trainingEnd - trainingStart);
+  cout << "Trained model for " << trainingDuration.count() / 1000000.0 << " seconds." << endl;
 
-  // print final weights
-  cout << endl << "Final Weights:" << endl;
+  // show model params
+  printParams(fnn);
+
+  // export model params
+  fnn.exportParameters(paramsFilename);
+  cout << "Exported model parameters to \"" << paramsFilename << "\"" << endl;
+  cout << endl;
+}
+
+void fnn_load_example(){
+  cout << "EXAMPLE 2 - LOAD MODEL" << endl;
+  
+  // create FNN, specifying layers + (optional) learning rate
+  FNN fnn({N_INPUTS, 3, N_OUTPUTS}, 0.1);
+  // import weights/biases from a file
+  cout << "Importing params from \"" << paramsFilename << "\" ..." << endl;
+  fnn.importParameters(paramsFilename);
+
+  // show model params
+  printParams(fnn);
+}
+
+int main(){
+  fnn_train_example();
+  fnn_load_example();
+}
+
+// print model weights/biases
+void printParams(const FNN &fnn){
+  // print model weights
+  cout << endl << "Weights:" << endl;
   for(int l = 1; l < fnn.getNumLayers(); l++){
     cout << "Layer " << l << ": " << endl;
     for(int j = 0; j < fnn.getNumNeurons(l); j++){
@@ -76,22 +109,14 @@ int main(){
       }
     }
   }
-  // print final biases
-  cout << endl << "Final Biases:" << endl;
+  // print model biases
+  cout << endl << "Biases:" << endl;
   for(int l = 1; l < fnn.getNumLayers(); l++){
     cout << "Layer " << l << ": " << endl;
     for(int j = 0; j < fnn.getNumNeurons(l); j++){
       cout << "  b" <<  j << " = " << fnn.getBias(l, j) << endl;
     }
   }
-
-  // export model params
-  fnn.exportParameters(paramsFilename);
-  cout << "Exported model parameters to \"" << paramsFilename << "\"" << endl;
-
-  // display training time
-  cout << "Trained model for " << trainingDuration.count() / 1000000.0 << " seconds." << endl;
-  return 0;
 }
 
 // random double within range

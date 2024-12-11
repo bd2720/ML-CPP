@@ -6,9 +6,12 @@
 #include <string>
 #include <fstream>
 #include <iterator>
+#include <sstream>
 #include "fnn.hpp"
 
 using namespace std;
+
+/* UTILITY */
 
 // random double within range
 double randomDouble(double low, double high){
@@ -22,6 +25,8 @@ static double sigmoid(double x){
 static double dSigmoid(double y){
   return y * (1.0 - y);
 }
+
+/* INITIALIZATION, TRAINING */
 
 FNN::FNN(const vector<int> &layers, double rate){
   // initialize number of layers
@@ -142,9 +147,12 @@ double * FNN::getOutputs(){
   return activation[numLayers-1];
 }
 
-void FNN::exportParameters(const string &paramsFilename){
+/* IMPORT/EXPORT */
+
+bool FNN::exportParameters(const string &paramsFilename){
   // open file as ofstream
   ofstream paramsFile(paramsFilename);
+  if(!paramsFile.is_open()) return false;
   // treat weights/biases as raw bytes
   unsigned char *bytes;
 
@@ -166,6 +174,44 @@ void FNN::exportParameters(const string &paramsFilename){
     ostream_iterator<unsigned char> biasIterator(paramsFile);
     copy(bytes, bytes + numNeurons[l]*sizeof(double), biasIterator);
   }
-  // close parameter file
   paramsFile.close();
+  return true;
+}
+
+bool FNN::importParameters(const string &paramsFilename){
+  // initialize layers
+  ifstream paramsFile(paramsFilename);
+  if(!paramsFile.is_open()) return false;
+  string lineBuf;
+  if(!getline(paramsFile, lineBuf)) return false;
+  stringstream lineStream(lineBuf);
+  // match layer structure of file
+  int currNeurons;
+  for(int l = 0; l < numLayers; l++){
+    // extract and match numNeurons[l]
+    if(!(lineStream >> currNeurons)) return false;
+    lineStream.ignore(); // advance ","
+    if(currNeurons != numNeurons[l]) return false;
+  }
+  paramsFile.close();
+  // initialize weights/biases from raw data
+  ifstream paramsFileRaw(paramsFilename, ios::binary);
+  int bytesToRead; // number of bytes to read at a time
+  char *buf; // cast double arrays to char
+  // read in weights
+  for(int l = 1; l < numLayers; l++){
+    bytesToRead = numNeurons[l]*numNeurons[l-1]*sizeof(double);
+    buf = (char *)weight[l];
+    if(!paramsFileRaw.read(buf, bytesToRead)) return false;
+    l++;
+  }
+  // read in biases
+  for(int l = 1; l < numLayers; l++){
+    bytesToRead = numNeurons[l]*sizeof(double);
+    buf = (char *)bias[l];
+    if(!paramsFileRaw.read(buf, bytesToRead)) return false;
+    l++;
+  }
+  paramsFile.close();
+  return true;
 }
