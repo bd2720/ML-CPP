@@ -196,6 +196,11 @@ bool FNN::importParameters(const string &paramsFilename){
   paramsFile.close();
   // initialize weights/biases from raw data
   ifstream paramsFileRaw(paramsFilename, ios::binary);
+  if(!paramsFileRaw.is_open()) return false;
+  // advance to next line (skip layers)
+  string line;
+  if(!getline(paramsFileRaw, line)) return false;
+
   int bytesToRead; // number of bytes to read at a time
   char *buf; // cast double arrays to char
   // read in weights
@@ -203,15 +208,13 @@ bool FNN::importParameters(const string &paramsFilename){
     bytesToRead = numNeurons[l]*numNeurons[l-1]*sizeof(double);
     buf = (char *)weight[l];
     if(!paramsFileRaw.read(buf, bytesToRead)) return false;
-    l++;
   }
   // read in biases
   for(int l = 1; l < numLayers; l++){
     bytesToRead = numNeurons[l]*sizeof(double);
     buf = (char *)bias[l];
     if(!paramsFileRaw.read(buf, bytesToRead)) return false;
-    l++;
   }
-  paramsFile.close();
+  paramsFileRaw.close();
   return true;
 }
