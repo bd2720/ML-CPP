@@ -2,7 +2,7 @@ PROG = sample
 PROG2 = sample_mnist
 LIB = fnn
 CC = g++
-FLAGS = -Wall -Wextra -g
+FLAGS = -Wall -Wextra -O4
 
 all: $(PROG) $(PROG2)
 
@@ -24,8 +24,10 @@ $(PROG2).o: $(PROG2).cpp
 $(LIB).o: $(LIB).cpp
 	$(CC) -c $(LIB).cpp $(FLAGS)
 
+# remove object and executable files
 clean:
-	rm *.o $(PROG) $(PROG2)
+	rm -f *.o $(PROG) $(PROG2)
 
+# remove all .model files
 clean-model:
-	rm *.model
+	rm -f *.model

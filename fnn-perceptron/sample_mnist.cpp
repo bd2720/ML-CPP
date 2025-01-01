@@ -2,13 +2,14 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <chrono>
 #include "fnn.hpp"
 using namespace std;
 
 #define N_INPUTS 784
 #define N_OUTPUTS 10
 #define N_EXAMPLES 60000
-#define N_EPOCHS 1
+#define N_EPOCHS 5
 /* MNIST Data Source:
     https://git-disl.github.io/GTDLBench/datasets/mnist_datasets/
     Format: label, px1-1, px1-2, px1-3...
@@ -19,6 +20,8 @@ const string mnist_training = "mnist_train.csv";
 
 double inputs[N_INPUTS];
 double expected[N_OUTPUTS];
+
+const string model_filename = "fnn_mnist.model";
 
 // loads the next row into inputs and expected; returns label
 int loadNextExample(ifstream &data){
@@ -75,6 +78,7 @@ void fnn_train(){
     return;
   }
 
+  auto trainingStart = chrono::high_resolution_clock::now();
   // training loop
   for(int epoch = 1; epoch <= N_EPOCHS; epoch++){
     int correct = 0;
@@ -85,20 +89,34 @@ void fnn_train(){
       // train on example
       fnn.feedforward(inputs);
       fnn.backpropagate(expected);
-
       
       // evaluate correctness (brightest neuron)
       int predictedLabel = getOutputLabel(outputs);
       correct += (predictedLabel == label);
       //cout << "Model Predicted: " << predictedLabel << "; Expected Value: " << label << endl;
     }
-    // print accuracy
+    // print accuracy and training time
     cout << "e" << epoch << ": ";
     cout << ((double)correct) / ((double)N_EXAMPLES) * 100.0 << "%" << endl;
+
+    // reset training data
+    trainingData.seekg(0);
   }
+  // stop timer
+  auto trainingEnd = chrono::high_resolution_clock::now();
+  auto trainingDuration = chrono::duration_cast<chrono::microseconds>(trainingEnd - trainingStart);
+  
+  double seconds = trainingDuration.count() / 1000000.0;
+  cout << "Completed " << N_EPOCHS << " training epochs in ";
+  cout << seconds << " seconds." << endl;
+  cout << "Average seconds per epoch: " << seconds / N_EPOCHS << endl;
+  cout << "Average seconds per example: " << seconds / (N_EPOCHS*N_EXAMPLES) << endl;
 
   // close training data file
   trainingData.close();
+
+  // export model
+  fnn.exportParameters(model_filename);
 }
 
 int main(){
