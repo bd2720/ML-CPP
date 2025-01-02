@@ -8,9 +8,10 @@ using namespace std;
 
 #define N_INPUTS 784
 #define N_OUTPUTS 10
+#define LAYERS {N_INPUTS, 16, 16, N_OUTPUTS}
 #define N_TRAINING 60000
 #define N_TESTING 10000
-#define N_EPOCHS 5
+#define N_EPOCHS 10
 /* MNIST Data Source:
     https://git-disl.github.io/GTDLBench/datasets/mnist_datasets/
     Format: label, px1-1, px1-2, px1-3...
@@ -68,7 +69,7 @@ int getOutputLabel(double *outputs){
 void fnn_train(){
   // init model
   cout << "EXAMPLE 1 - MNIST TRAINING" << endl;
-  FNN fnn({N_INPUTS, 16, 16, N_OUTPUTS});
+  FNN fnn(LAYERS);
   fnn.initWeights(-0.3, 0.3);
   fnn.initBiases(0.0, 0.0);
   double *outputs = fnn.getOutputs();
@@ -124,7 +125,7 @@ void fnn_train(){
 // load model from file and test on testing set
 void fnn_test(){
   cout << "EXAMPLE 2 - MNIST TESTING" << endl;
-  FNN fnn({N_INPUTS, 16, 16, N_OUTPUTS});
+  FNN fnn(LAYERS);
   fnn.importParameters(model_filename); // import from file
   double *outputs = fnn.getOutputs();
 
@@ -151,8 +152,8 @@ void fnn_test(){
 
   // print testing accuracy
   cout << "Testing Accuracy: ";
-  cout << ((double)correct) / ((double)N_TRAINING) * 100.0 << "%";
-  cout << " (" << correct << "/" << N_TRAINING << ")" << endl;
+  cout << ((double)correct) / ((double)N_TESTING) * 100.0 << "%";
+  cout << " (" << correct << "/" << N_TESTING << ")" << endl;
 }
 
 int main(){

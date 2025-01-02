@@ -1,2 +1,6 @@
+# MNIST digit classification data
 mnist_train.csv
 mnist_test.csv
+
+# FNN model files
+*.model
