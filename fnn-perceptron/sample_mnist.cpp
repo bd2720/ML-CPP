@@ -8,7 +8,8 @@ using namespace std;
 
 #define N_INPUTS 784
 #define N_OUTPUTS 10
-#define N_EXAMPLES 60000
+#define N_TRAINING 60000
+#define N_TESTING 10000
 #define N_EPOCHS 5
 /* MNIST Data Source:
     https://git-disl.github.io/GTDLBench/datasets/mnist_datasets/
@@ -17,6 +18,7 @@ using namespace std;
     px: int, 0-255 (pixel brightness)
 */
 const string mnist_training = "mnist_train.csv";
+const string mnist_testing = "mnist_test.csv";
 
 double inputs[N_INPUTS];
 double expected[N_OUTPUTS];
@@ -82,7 +84,7 @@ void fnn_train(){
   // training loop
   for(int epoch = 1; epoch <= N_EPOCHS; epoch++){
     int correct = 0;
-    for(int example = 1; example <= N_EXAMPLES; example++){
+    for(int example = 1; example <= N_TRAINING; example++){
       // load current MNIST example into inputs and expected arrays
       int label = loadNextExample(trainingData);
 
@@ -97,7 +99,7 @@ void fnn_train(){
     }
     // print accuracy and training time
     cout << "e" << epoch << ": ";
-    cout << ((double)correct) / ((double)N_EXAMPLES) * 100.0 << "%" << endl;
+    cout << ((double)correct) / ((double)N_TRAINING) * 100.0 << "%" << endl;
 
     // reset training data
     trainingData.seekg(0);
@@ -110,7 +112,7 @@ void fnn_train(){
   cout << "Completed " << N_EPOCHS << " training epochs in ";
   cout << seconds << " seconds." << endl;
   cout << "Average seconds per epoch: " << seconds / N_EPOCHS << endl;
-  cout << "Average seconds per example: " << seconds / (N_EPOCHS*N_EXAMPLES) << endl;
+  cout << "Average seconds per example: " << seconds / (N_EPOCHS*N_TRAINING) << endl;
 
   // close training data file
   trainingData.close();
@@ -119,6 +121,41 @@ void fnn_train(){
   fnn.exportParameters(model_filename);
 }
 
+// load model from file and test on testing set
+void fnn_test(){
+  cout << "EXAMPLE 2 - MNIST TESTING" << endl;
+  FNN fnn({N_INPUTS, 16, 16, N_OUTPUTS});
+  fnn.importParameters(model_filename); // import from file
+  double *outputs = fnn.getOutputs();
+
+  // open testing set
+  ifstream testingData(mnist_testing);
+  if(!testingData.is_open()){
+    cout << "Error: " << mnist_testing << " could not be opened." << endl;
+    return;
+  }
+
+  // testing loop
+  int correct = 0;
+  for(int example = 0; example < N_TESTING; example++){
+    // load example
+    int label = loadNextExample(testingData);
+
+    // compute activations
+    fnn.feedforward(inputs);
+
+    // evaluate correctness
+    int predictedLabel = getOutputLabel(outputs);
+    correct += (predictedLabel == label);
+  }
+
+  // print testing accuracy
+  cout << "Testing Accuracy: ";
+  cout << ((double)correct) / ((double)N_TRAINING) * 100.0 << "%";
+  cout << " (" << correct << "/" << N_TRAINING << ")" << endl;
+}
+
 int main(){
   fnn_train();
+  fnn_test();
 }
