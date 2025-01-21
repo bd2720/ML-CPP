@@ -1,3 +1,12 @@
+/*  GOAL: classify handwritten digits, 0-9
+
+    MNIST Data Source:
+      https://git-disl.github.io/GTDLBench/datasets/mnist_datasets/
+    Format: label, px1-1, px1-2, px1-3...
+      label: int, 0-9 (digit)
+      px: int, 0-255 (pixel brightness)
+*/
+
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -12,12 +21,7 @@ using namespace std;
 #define N_TRAINING 60000
 #define N_TESTING 10000
 #define N_EPOCHS 10
-/* MNIST Data Source:
-    https://git-disl.github.io/GTDLBench/datasets/mnist_datasets/
-    Format: label, px1-1, px1-2, px1-3...
-    label: int, 0-9 (digit)
-    px: int, 0-255 (pixel brightness)
-*/
+
 const string mnist_training = "mnist_train.csv";
 const string mnist_testing = "mnist_test.csv";
 
@@ -69,8 +73,8 @@ int getOutputLabel(double *outputs){
 void fnn_train(){
   // init model
   cout << "EXAMPLE 1 - MNIST TRAINING" << endl;
-  FNN fnn(LAYERS);
-  fnn.initWeights(-0.3, 0.3);
+  FNN fnn(LAYERS, 0.1);
+  fnn.initWeights(-0.08692913817, 0.08692913817);
   fnn.initBiases(0.0, 0.0);
   double *outputs = fnn.getOutputs();
 

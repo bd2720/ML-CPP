@@ -1,3 +1,7 @@
+/*  GOAL: predict output of XOR function with binary inputs:
+      y = a XOR b XOR c
+*/
+
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -12,7 +16,7 @@ using namespace std;
 #define N_OUTPUTS 1
 #define N_EXAMPLES 100
 #define N_EPOCHS 400
-const string paramsFilename = "fnn_params.model";
+const string paramsFilename = "fnn_xor.model";
 
 double inputs[N_INPUTS];
 double expected[N_OUTPUTS];

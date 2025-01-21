@@ -1,24 +1,16 @@
-PROG = sample
-PROG2 = sample_mnist
+PROGS = sample_xor sample_mnist sample_graph
 LIB = fnn
 CC = g++
 FLAGS = -Wall -Wextra -O4
 
-all: $(PROG) $(PROG2)
+all: $(PROGS)
 
-# Make sample program 1 (xor)
-$(PROG): $(PROG).o $(LIB).o
-	$(CC) $(PROG).o $(LIB).o $(FLAGS) -o $(PROG)
+# Make sample programs
+$(PROGS): %: %.o $(LIB).o
+	$(CC) $< $(LIB).o -o $@ $(FLAGS)
 
-$(PROG).o: $(PROG).cpp
-	$(CC) -c $(PROG).cpp $(FLAGS)
-
-# Make sample program 2 (mnist)
-$(PROG2): $(PROG2).o $(LIB).o
-	$(CC) $(PROG2).o $(LIB).o $(FLAGS) -o $(PROG2)
-
-$(PROG2).o: $(PROG2).cpp
-	$(CC) -c $(PROG2).cpp $(FLAGS)
+%.o: %.cpp
+	$(CC) -c $< -o $@ $(FLAGS)
 
 # Make library (FNN)
 $(LIB).o: $(LIB).cpp
@@ -26,7 +18,7 @@ $(LIB).o: $(LIB).cpp
 
 # remove object and executable files
 clean:
-	rm -f *.o $(PROG) $(PROG2)
+	rm -f *.o $(PROGS)
 
 # remove all .model files
 clean-model:
